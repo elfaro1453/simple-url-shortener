@@ -23,7 +23,8 @@
     if($pw_stats != '' && preg_match("!^/[$valid_chars]+/stats/" . preg_quote($pw_stats, '!') . "/?$!", $_SERVER['REQUEST_URI']) == 1) { slugStats(); exit; }
     if($pw_create == '' && preg_match("!^/[a-z0-9]+://.+$!", $_SERVER['REQUEST_URI']) == 1) { createLink(); exit; }
     if($pw_create != '' && preg_match("!^/" . preg_quote($pw_create, '!') . "/[a-z0-9]+://.+$!", $_SERVER['REQUEST_URI']) == 1) { createLink(); exit; }
-
+    
+    error("URL is not valid or malformatted", 400);
     exit;
 
     function doNothing() {
@@ -47,7 +48,10 @@
 
         mysqli_query($db, "UPDATE links SET visits = visits + 1, last_visited = NOW() WHERE slug = '$escaped_slug'") or error('Could not increment visit count.', 500);
 
+        $escaped_referer = "no-referer";
+        if(isset($_SERVER['HTTP_REFERER'])) {
         $escaped_referer = mysqli_real_escape_string($db, $_SERVER['HTTP_REFERER']);
+        }
         mysqli_query($db, "INSERT INTO visits (slug, visit_date, referer) VALUES ('$escaped_slug', NOW(), '$escaped_referer')") or error('Could not record visit.', 500);
 
         $row = mysqli_fetch_row($result);
